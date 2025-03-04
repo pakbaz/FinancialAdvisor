@@ -27,3 +27,5 @@ python main.py
 
 
 ## Full Blog Post
+
+[AutoGen - A Modern AI Agent Framework for Multi‑Agent Collaboration](https://starspak.com/Blog/AutoGen+-+A+Modern+AI+Agent+Framework+for+Multi%E2%80%91Agent+Collaboration)
