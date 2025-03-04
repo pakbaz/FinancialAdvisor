@@ -9,5 +9,17 @@ Our system will consist of four specialized AI agents, each with a distinct role
 - Recommendation Agent – aggregates the insights and provides a final recommendation: Strong Buy, Hold, or Sell, based on predefined decision logic (positive fundamentals + positive technicals = buy​, mixed signals = hold, both negative = sell).
 Using AutoGen, these agents will communicate in a conversation, each contributing their analysis. We’ll orchestrate this conversation such that their responses stream progressively (simulating real-time analysis). Finally, we’ll combine their outputs into a summary report containing written insights and a chart visualization of the stock’s technical trend.
 
+## Setup
+
+You only need the OpenAI's key and install dependencies in order to run this example.
+
+```shell
+
+
+
+```
+
+
+
 
 ## Full Blog Post
