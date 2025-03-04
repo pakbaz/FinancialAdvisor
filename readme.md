@@ -11,15 +11,19 @@ Using AutoGen, these agents will communicate in a conversation, each contributin
 
 ## Setup
 
-You only need the OpenAI's key and install dependencies in order to run this example.
+You only need the OpenAI's key and install dependencies in order to run this example. User venv or use conda to create virtual environment and use python 3.12
+Then:
 
 ```shell
+# requirements
+pip install yfinance
+pip install matplotlib
+pip install -U "autogen-agentchat" "autogen-ext[openai]"
 
-
-
+# OpenAI key
+export OPENAI_API_KEY=sk-******* # put your api key here
+python main.py
 ```
-
-
 
 
 ## Full Blog Post
