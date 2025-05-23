@@ -1,0 +1,15 @@
+name: financial-advisor
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - alpha_vantage
+      - autogen-ext[openai,azure]
+      - python-dotenv
+      - matplotlib
+      - pandas
+      - numpy
+      - python-dotenv
