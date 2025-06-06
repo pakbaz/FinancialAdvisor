@@ -10,7 +10,7 @@ from alpha_vantage.fundamentaldata import FundamentalData
 from autogen_core.tools import FunctionTool
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.teams import RoundRobinGroupChat
-from autogen_ext.models.openai import AzureOpenAIChatCompletionClient
+from autogen_ext.models.openai import OpenAIChatCompletionClient, AzureOpenAIChatCompletionClient
 from autogen_agentchat.ui import Console
 
 # --- Load environment variables ---
@@ -95,22 +95,45 @@ def plot_stock_data(data: dict, ticker: str):
     plt.tight_layout()
     plt.show()
 
-# --- Azure OpenAI Configuration ---
-AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_API_KEY = os.environ.get("AZURE_OPENAI_API_KEY")
-AZURE_OPENAI_DEPLOYMENT = os.environ.get("AZURE_OPENAI_DEPLOYMENT")
-AZURE_OPENAI_MODEL = os.environ.get("AZURE_OPENAI_MODEL", "gpt-4o")
-AZURE_OPENAI_API_VERSION = os.environ.get("AZURE_OPENAI_API_VERSION")
-
-if not all([
-    AZURE_OPENAI_ENDPOINT,
-    AZURE_OPENAI_API_KEY,
-    AZURE_OPENAI_DEPLOYMENT,
-    AZURE_OPENAI_API_VERSION
-]):
+# --- Model Client Configuration ---
+def create_model_client():
+    """
+    Creates and returns the appropriate OpenAI model client based on environment variables.
+    Supports both OpenAI and Azure OpenAI configurations.
+    Priority: Azure OpenAI > OpenAI
+    """
+    # Check for Azure OpenAI configuration
+    azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+    azure_api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+    azure_deployment = os.environ.get("AZURE_OPENAI_DEPLOYMENT")
+    azure_api_version = os.environ.get("AZURE_OPENAI_API_VERSION")
+    
+    if all([azure_endpoint, azure_api_key, azure_deployment, azure_api_version]):
+        print("Using Azure OpenAI configuration...")
+        model_name = os.environ.get("AZURE_OPENAI_MODEL", "gpt-4o")
+        return AzureOpenAIChatCompletionClient(
+            model=model_name,
+            azure_deployment=azure_deployment,
+            azure_endpoint=azure_endpoint,
+            api_key=azure_api_key,
+            api_version=azure_api_version
+        )
+    
+    # Fallback to OpenAI
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    if openai_api_key:
+        print("Using OpenAI configuration...")
+        model_name = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+        return OpenAIChatCompletionClient(
+            model=model_name,
+            api_key=openai_api_key
+        )
+    
+    # No valid configuration found
     raise ValueError(
-        "One or more Azure OpenAI environment variables are not set. "
-        "Please set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT, and AZURE_OPENAI_API_VERSION in your .env or environment."
+        "No valid OpenAI configuration found. Please set either:\n"
+        "For Azure OpenAI: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT, AZURE_OPENAI_API_VERSION\n"
+        "For OpenAI: OPENAI_API_KEY"
     )
 
 # --- AutoGen Agent Setup ---
@@ -119,15 +142,12 @@ fetch_tool = FunctionTool(
     description="Fetch fundamental and technical data for a stock ticker from Alpha Vantage."
 )
 
+# Create model client instance
+model_client = create_model_client()
+
 data_agent = AssistantAgent(
     name="Data_Fetcher",
-    model_client=AzureOpenAIChatCompletionClient(
-        model=AZURE_OPENAI_MODEL,
-        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_OPENAI_API_VERSION
-    ),
+    model_client=model_client,
     tools=[fetch_tool],
     description="Fetches fundamental and technical data from Alpha Vantage for a given stock ticker.",
     system_message=(
@@ -138,13 +158,7 @@ data_agent = AssistantAgent(
 
 fundamental_agent = AssistantAgent(
     name="Fundamental_Analyst",
-    model_client=AzureOpenAIChatCompletionClient(
-        model=AZURE_OPENAI_MODEL,
-        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_OPENAI_API_VERSION
-    ),
+    model_client=model_client,
     description="Analyzes the stock's fundamentals like P/E ratio, EPS, and market cap to determine valuation.",
     system_message=(
         "You are a fundamental analysis expert. Given the stock's fundamental data, analyze the P/E ratio, EPS, and market cap to assess "
@@ -154,13 +168,7 @@ fundamental_agent = AssistantAgent(
 
 technical_agent = AssistantAgent(
     name="Technical_Analyst",
-    model_client=AzureOpenAIChatCompletionClient(
-        model=AZURE_OPENAI_MODEL,
-        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_OPENAI_API_VERSION
-    ),
+    model_client=model_client,
     description="Analyzes technical indicators (moving averages, RSI, Bollinger Bands) to determine trend and momentum.",
     system_message=(
         "You are a technical analysis expert. Evaluate the stock's technical data including the 50-day and 200-day moving averages, "
@@ -170,13 +178,7 @@ technical_agent = AssistantAgent(
 
 recommendation_agent = AssistantAgent(
     name="Recommendation_Agent",
-    model_client=AzureOpenAIChatCompletionClient(
-        model=AZURE_OPENAI_MODEL,
-        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_OPENAI_API_VERSION
-    ),
+    model_client=model_client,
     description="Provides a final buy/hold/sell recommendation based on the combined fundamental and technical analyses.",
     system_message=(
         "You are a recommendation agent. Based on the provided fundamental and technical analyses, give a final recommendation for the stock: "
