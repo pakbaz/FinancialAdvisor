@@ -132,7 +132,9 @@ Write-Host "`n2. Test your configuration:" -ForegroundColor White
 Write-Host "   python test_config.py" -ForegroundColor Gray
 
 Write-Host "`n3. Run the application:" -ForegroundColor White
-Write-Host "   python main.py" -ForegroundColor Gray
+Write-Host "   CLI: python main.py" -ForegroundColor Gray
+Write-Host "   Web API: python app.py" -ForegroundColor Gray
+Write-Host "   Or: python start_web_service.py" -ForegroundColor Gray
 
 if ($condaAvailable) {
     Write-Host "`n💡 Remember to activate your conda environment:" -ForegroundColor Yellow

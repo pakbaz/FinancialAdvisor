@@ -72,7 +72,10 @@ def test_configuration():
     else:
         provider = "Azure OpenAI" if azure_configured else "OpenAI"
         print(f"✅ SUCCESS: Configuration is valid! Using {provider}")
-        print("   You can now run: python main.py")
+        print("   You can now run:")
+        print("   - CLI: python main.py")
+        print("   - Web API: python app.py")
+        print("   - Or: python start_web_service.py")
     
     print("\n💡 Tips:")
     print("   - Copy .env.example to .env and fill in your keys")
