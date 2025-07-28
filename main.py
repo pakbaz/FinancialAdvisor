@@ -142,57 +142,61 @@ fetch_tool = FunctionTool(
     description="Fetch fundamental and technical data for a stock ticker from Alpha Vantage."
 )
 
-# Create model client instance
-model_client = create_model_client()
+def create_agents_and_team():
+    """Create model client and agents. Called when needed."""
+    # Create model client instance
+    model_client = create_model_client()
 
-data_agent = AssistantAgent(
-    name="Data_Fetcher",
-    model_client=model_client,
-    tools=[fetch_tool],
-    description="Fetches fundamental and technical data from Alpha Vantage for a given stock ticker.",
-    system_message=(
-        "You are a data fetching agent. Given a stock ticker, use the provided tool to retrieve the stock's fundamental and technical metrics. "
-        "Return the data as a summary including current price, market cap, P/E ratio, EPS, moving averages, RSI, and Bollinger Bands."
+    data_agent = AssistantAgent(
+        name="Data_Fetcher",
+        model_client=model_client,
+        tools=[fetch_tool],
+        description="Fetches fundamental and technical data from Alpha Vantage for a given stock ticker.",
+        system_message=(
+            "You are a data fetching agent. Given a stock ticker, use the provided tool to retrieve the stock's fundamental and technical metrics. "
+            "Return the data as a summary including current price, market cap, P/E ratio, EPS, moving averages, RSI, and Bollinger Bands."
+        )
     )
-)
 
-fundamental_agent = AssistantAgent(
-    name="Fundamental_Analyst",
-    model_client=model_client,
-    description="Analyzes the stock's fundamentals like P/E ratio, EPS, and market cap to determine valuation.",
-    system_message=(
-        "You are a fundamental analysis expert. Given the stock's fundamental data, analyze the P/E ratio, EPS, and market cap to assess "
-        "whether the stock is undervalued, fairly valued, or overvalued. Provide your analysis in a concise manner."
+    fundamental_agent = AssistantAgent(
+        name="Fundamental_Analyst",
+        model_client=model_client,
+        description="Analyzes the stock's fundamentals like P/E ratio, EPS, and market cap to determine valuation.",
+        system_message=(
+            "You are a fundamental analysis expert. Given the stock's fundamental data, analyze the P/E ratio, EPS, and market cap to assess "
+            "whether the stock is undervalued, fairly valued, or overvalued. Provide your analysis in a concise manner."
+        )
     )
-)
 
-technical_agent = AssistantAgent(
-    name="Technical_Analyst",
-    model_client=model_client,
-    description="Analyzes technical indicators (moving averages, RSI, Bollinger Bands) to determine trend and momentum.",
-    system_message=(
-        "You are a technical analysis expert. Evaluate the stock's technical data including the 50-day and 200-day moving averages, "
-        "RSI, and Bollinger Bands to determine the stock's trend and momentum. Provide your analysis clearly and concisely."
+    technical_agent = AssistantAgent(
+        name="Technical_Analyst",
+        model_client=model_client,
+        description="Analyzes technical indicators (moving averages, RSI, Bollinger Bands) to determine trend and momentum.",
+        system_message=(
+            "You are a technical analysis expert. Evaluate the stock's technical data including the 50-day and 200-day moving averages, "
+            "RSI, and Bollinger Bands to determine the stock's trend and momentum. Provide your analysis clearly and concisely."
+        )
     )
-)
 
-recommendation_agent = AssistantAgent(
-    name="Recommendation_Agent",
-    model_client=model_client,
-    description="Provides a final buy/hold/sell recommendation based on the combined fundamental and technical analyses.",
-    system_message=(
-        "You are a recommendation agent. Based on the provided fundamental and technical analyses, give a final recommendation for the stock: "
-        "'Strong Buy', 'Hold', or 'Sell'. Use these criteria: if both fundamental and technical signals are strong, recommend 'Strong Buy'; "
-        "if both are weak, recommend 'Sell'; otherwise, recommend 'Hold'. Explain your reasoning briefly."
+    recommendation_agent = AssistantAgent(
+        name="Recommendation_Agent",
+        model_client=model_client,
+        description="Provides a final buy/hold/sell recommendation based on the combined fundamental and technical analyses.",
+        system_message=(
+            "You are a recommendation agent. Based on the provided fundamental and technical analyses, give a final recommendation for the stock: "
+            "'Strong Buy', 'Hold', or 'Sell'. Use these criteria: if both fundamental and technical signals are strong, recommend 'Strong Buy'; "
+            "if both are weak, recommend 'Sell'; otherwise, recommend 'Hold'. Explain your reasoning briefly."
+        )
     )
-)
 
-agents = [data_agent, fundamental_agent, technical_agent, recommendation_agent]
-team = RoundRobinGroupChat(agents, max_turns=4)
+    agents = [data_agent, fundamental_agent, technical_agent, recommendation_agent]
+    team = RoundRobinGroupChat(agents, max_turns=4)
+    return team
 
 # --- Main Workflow ---
 async def run_analysis(ticker: str):
     """Runs the multi-agent analysis and displays results and chart."""
+    team = create_agents_and_team()
     user_task = f"Analyze the stock {ticker} and provide a buy/hold/sell recommendation along with fundamental and technical insights."
     stream = team.run_stream(task=user_task)
     await Console(stream)

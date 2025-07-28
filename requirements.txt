@@ -18,6 +18,13 @@ numpy>=1.24.0
 # OpenAI client (for direct OpenAI usage)
 openai>=1.0.0
 
+# Web service framework
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Additional utilities for testing
+requests>=2.31.0
+
 # Additional utilities (automatically installed with above packages)
 # requests - HTTP requests
 # asyncio - Async support (built-in Python 3.7+)

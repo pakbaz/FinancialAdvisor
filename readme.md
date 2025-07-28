@@ -72,11 +72,100 @@ AZURE_OPENAI_API_VERSION=2024-02-15-preview
 
 ### 4. Run the Application
 
+**Option A: Command Line Interface (CLI)**
 ```powershell
 python main.py
 ```
 
-Enter a stock ticker when prompted (e.g., `AAPL`, `MSFT`, `GOOGL`) and watch the AI agents collaborate to provide comprehensive analysis!
+**Option B: Web Service API**
+```powershell
+python -m uvicorn app:app --host 0.0.0.0 --port 8000
+```
+or simply:
+```powershell
+python app.py
+```
+
+For the CLI, enter a stock ticker when prompted (e.g., `AAPL`, `MSFT`, `GOOGL`) and watch the AI agents collaborate to provide comprehensive analysis!
+
+For the Web API, the service will be available at `http://localhost:8000` with interactive documentation at `http://localhost:8000/docs`.
+
+## 🌐 Web API Usage
+
+The Financial Advisor is now available as a RESTful web service in addition to the CLI interface.
+
+### Starting the Web Service
+
+```bash
+# Start the web service
+python -m uvicorn app:app --host 0.0.0.0 --port 8000
+
+# Or use the convenience script
+python app.py
+```
+
+The API will be available at `http://localhost:8000`
+
+### API Endpoints
+
+#### Health Check
+```bash
+GET /health
+```
+Returns the service health status and configuration check.
+
+#### Stock Analysis  
+```bash
+POST /analyze
+Content-Type: application/json
+
+{
+  "ticker": "AAPL"
+}
+```
+
+Returns comprehensive stock analysis including:
+- Multi-agent AI analysis text
+- Financial data (price, ratios, technical indicators)
+- Base64-encoded chart image
+
+#### API Documentation
+- Interactive docs: `http://localhost:8000/docs`
+- OpenAPI spec: `http://localhost:8000/openapi.json`
+
+### Example Usage
+
+**Using curl:**
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Analyze a stock
+curl -X POST "http://localhost:8000/analyze" \
+     -H "Content-Type: application/json" \
+     -d '{"ticker": "AAPL"}'
+```
+
+**Using Python:**
+```python
+import requests
+
+# Analyze Apple stock
+response = requests.post(
+    "http://localhost:8000/analyze",
+    json={"ticker": "AAPL"}
+)
+
+if response.status_code == 200:
+    data = response.json()
+    print(f"Analysis: {data['analysis']}")
+    print(f"Current Price: ${data['data']['current_price']}")
+```
+
+**Test the API:**
+```bash
+python test_client.py
+```
 
 ## 🤖 How It Works
 
@@ -153,6 +242,8 @@ The system uses sophisticated logic to generate recommendations:
 - **Flexible Configuration**: Support for both OpenAI and Azure OpenAI
 - **Streaming Output**: Real-time conversation between AI agents
 - **Professional Recommendations**: Clear, actionable investment advice
+- **Multiple Interfaces**: Available as both CLI application and Web API
+- **RESTful API**: Easy integration with other applications
 
 ## 🛠️ Troubleshooting
 
